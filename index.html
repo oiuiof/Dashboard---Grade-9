@@ -331,6 +331,10 @@ let currentSort = 'default';
 let searchQuery = '';
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
+function removeDiacritics(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+}
+
 function onSearchInput() {
   searchQuery = document.getElementById('searchInput').value;
   document.getElementById('searchClear').style.display = searchQuery ? 'block' : 'none';
@@ -344,14 +348,13 @@ function clearSearch() {
   updateDashboard();
 }
 
-// Tính điểm match: họ (đầu) > tên đệm (giữa) > tên (cuối)
-// Trả về số càng nhỏ = ưu tiên càng cao, -1 = không match
 function getSearchScore(fullName, query) {
   if (!query) return 0;
-  const q = query.trim().toLowerCase();
+  const q = removeDiacritics(query.trim());
   if (!q) return 0;
-  const name = fullName.toLowerCase();
+  const name = removeDiacritics(fullName);
   const parts = name.split(/\s+/);
+
   // Khớp từ đầu (họ)
   if (parts[0] && parts[0].startsWith(q)) return 1;
   // Khớp từ giữa
@@ -360,12 +363,17 @@ function getSearchScore(fullName, query) {
   }
   // Khớp tên cuối
   if (parts.length > 1 && parts[parts.length - 1].startsWith(q)) return 3;
-  // Khớp bất kỳ vị trí trong tên (substring)
+  // Khớp substring bất kỳ
   if (name.includes(q)) return 4;
-  // Khớp theo cụm từ liên tiếp (VD: "Nguyen V" khớp "Nguyễn Văn")
-  const qNorm = q.replace(/\s+/g, ' ');
-  if (name.includes(qNorm)) return 4;
-  return -1; // Không match
+  // Khớp cụm từ liên tiếp (VD: "nguyen h" khớp "Nguyễn Hồng")
+  const qParts = q.split(/\s+/);
+  let pi = 0;
+  for (let i = 0; i < parts.length && pi < qParts.length; i++) {
+    if (parts[i].startsWith(qParts[pi])) pi++;
+  }
+  if (pi === qParts.length) return 4;
+
+  return -1;
 }
 
 function applySearchFilter(list) {
@@ -485,6 +493,9 @@ function updateDashboard() {
   
   if (data.length === 0) {
     unavText.style.display = 'flex';
+    unavText.innerText = searchQuery.trim() ? `Không tìm thấy "${searchQuery}"` : 'DỮ LIỆU CHƯA SẴN SÀNG';
+    unavText.style.color = searchQuery.trim() ? '#aaa' : '#ff4d4f';
+    unavText.style.fontSize = searchQuery.trim() ? '24px' : '42px';
     dbContent.style.display = 'none';
     return;
   } else {
