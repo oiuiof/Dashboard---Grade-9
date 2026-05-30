@@ -49,7 +49,33 @@ tr:hover{ background:#222; }
 .modal-header-info h2 { font-size:26px; color:#ff9800; margin-bottom:5px; }
 .modal-header-info p { color:#999; }
 
-/* ── LOADING OVERLAY ── */
+/* ── LOGIN SCREEN ── */
+.login-overlay { display:flex; position:fixed; top:0;left:0;width:100%;height:100%; background:#0d0d0d; z-index:10000; justify-content:center; align-items:center; }
+.login-overlay.hidden { display:none; }
+.login-box { background:#1a1a1a; border:1px solid #333; border-radius:24px; padding:40px 36px; width:90%; max-width:400px; animation:fadeIn 0.3s ease; }
+.login-logo { font-size:36px; text-align:center; margin-bottom:8px; }
+.login-title { text-align:center; font-size:22px; font-weight:bold; color:white; margin-bottom:4px; }
+.login-sub { text-align:center; color:#666; font-size:14px; margin-bottom:28px; }
+.login-field { margin-bottom:16px; }
+.login-field label { display:block; color:#aaa; font-size:13px; margin-bottom:6px; }
+.login-field input { width:100%; padding:12px 14px; border-radius:12px; background:#111; border:1px solid #333; color:white; font-size:15px; outline:none; transition:0.2s; }
+.login-field input:focus { border-color:#ff9800; }
+.login-error { color:#ff4d4f; font-size:13px; text-align:center; min-height:20px; margin-bottom:8px; }
+.login-btn { width:100%; padding:13px; background:#ff9800; color:black; font-weight:bold; font-size:16px; border:none; border-radius:12px; cursor:pointer; margin-top:4px; transition:0.2s; }
+.login-btn:hover { background:#ffb74d; }
+.login-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+.badge-admin { background:#ff9800; color:black; }
+.badge-guest { background:#444; color:#aaa; }
+/* Header user info */
+.user-bar { display:flex; align-items:center; gap:10px; float:right; margin-top:4px; }
+.user-bar .username { color:#aaa; font-size:14px; }
+.btn-logout { background:#222; border:1px solid #444; color:#aaa; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:13px; }
+.btn-logout:hover { border-color:#ff9800; color:#ff9800; }
+/* Guest: ẩn nút thêm/sửa/xóa */
+body[data-role="guest"] .btn-add-student { display:none !important; }
+body[data-role="guest"] .btn-pencil { display:none !important; }
+body[data-role="guest"] th.col-edit,
+body[data-role="guest"] td.col-edit { display:none !important; }
 .loading-overlay { display:flex; position:fixed; top:0;left:0;width:100%;height:100%; background:#0d0d0d; z-index:9999; justify-content:center; align-items:center; flex-direction:column; gap:16px; transition:opacity 0.4s; }
 .loading-overlay.hidden { opacity:0; pointer-events:none; }
 .loading-spinner { width:48px; height:48px; border:4px solid #333; border-top-color:#ff9800; border-radius:50%; animation:spin 0.8s linear infinite; }
@@ -80,6 +106,26 @@ tr:hover{ background:#222; }
 </style>
 </head>
 <body>
+<!-- ── LOGIN SCREEN ── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">📊</div>
+    <div class="login-title">Dashboard Khối 9</div>
+    <div class="login-sub">Đăng nhập để tiếp tục</div>
+    <div class="login-field">
+      <label>Tên tài khoản</label>
+      <input type="text" id="loginUser" placeholder="Nhập tên tài khoản" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Mật khẩu</label>
+      <input type="password" id="loginPass" placeholder="Nhập mật khẩu" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="doLogin()">Đăng nhập</button>
+  </div>
+</div>
+
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
   <div class="loading-text">Đang kết nối cơ sở dữ liệu...</div>
@@ -87,7 +133,14 @@ tr:hover{ background:#222; }
 
 <div class="container">
 
-<div class="title">📊 Dashboard Phân Tích Kết Quả Khối 9</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div class="title" style="margin-bottom:0;">📊 Dashboard Phân Tích Kết Quả Khối 9</div>
+  <div class="user-bar">
+    <span id="userBadge" class="login-badge"></span>
+    <span class="username" id="userBarName"></span>
+    <button class="btn-logout" onclick="doLogout()">Đăng xuất</button>
+  </div>
+</div>
 
 <div class="filters">
   <div class="filter-box">
@@ -188,8 +241,8 @@ tr:hover{ background:#222; }
             <th>Rewrite (/1.0)</th>
             <th>Điểm Tổng</th>
             <th>Đánh giá</th>
-            <th>Sửa</th>
-            <th>Xóa</th>
+            <th class="col-edit">Sửa</th>
+            <th class="col-edit">Xóa</th>
           </tr>
         </thead>
         <tbody id="dataTableBody">
@@ -592,8 +645,8 @@ function updateDashboard() {
       ${s.sections.map(v => `<td>${v.toFixed(1)}</td>`).join('')}
       <td><strong>${s.total.toFixed(2)}</strong></td>
       <td>${badge}</td>
-      <td><button class="btn-pencil" onclick="openEditScoreModal('${s.id}')" title="Sửa điểm">✏️</button></td>
-      <td><button class="btn-pencil" onclick="deleteStudent('${s.id}', '${s.name}')" title="Xóa học sinh" style="color:#ff4d4f;">🗑️</button></td>
+      <td class="col-edit"><button class="btn-pencil" onclick="openEditScoreModal('${s.id}')" title="Sửa điểm">✏️</button></td>
+      <td class="col-edit"><button class="btn-pencil" onclick="deleteStudent('${s.id}', '${s.name}')" title="Xóa học sinh" style="color:#ff4d4f;">🗑️</button></td>
     </tr>`;
     tbody.innerHTML += rowHTML;
   });
@@ -909,6 +962,71 @@ function deleteStudent(studentId, studentName) {
   removeStudent(studentId);
 }
 
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+const ACCOUNTS = {
+  'Admin01': { password: 'Demo01', role: 'admin' },
+  'Guest01': { password: 'Demo01', role: 'guest' },
+};
+
+let currentUser = null; // { username, role }
+
+function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+
+  const account = ACCOUNTS[username];
+  if (!account || account.password !== password) {
+    errEl.innerText = 'Tên tài khoản hoặc mật khẩu không đúng!';
+    document.getElementById('loginPass').value = '';
+    return;
+  }
+
+  currentUser = { username, role: account.role };
+  sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+  errEl.innerText = '';
+  document.getElementById('loginOverlay').classList.add('hidden');
+  applyRoleUI();
+  initFirebase();
+}
+
+function doLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('currentUser');
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').innerText = '';
+}
+
+function applyRoleUI() {
+  if (!currentUser) return;
+  const isAdmin = currentUser.role === 'admin';
+
+  // Update user bar
+  const badge = document.getElementById('userBadge');
+  badge.innerText = isAdmin ? 'Admin' : 'Guest';
+  badge.className = 'login-badge ' + (isAdmin ? 'badge-admin' : 'badge-guest');
+  document.getElementById('userBarName').innerText = currentUser.username;
+
+  // Ẩn/hiện nút Add, Edit, Delete dựa trên role
+  // (áp dụng qua CSS class)
+  document.body.dataset.role = currentUser.role;
+}
+
+// Kiểm tra session đã đăng nhập chưa (khi reload trang)
+function checkSession() {
+  try {
+    const saved = sessionStorage.getItem('currentUser');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginOverlay').classList.add('hidden');
+      applyRoleUI();
+      initFirebase();
+    }
+  } catch(e) {}
+}
+
 // ── EVENT LISTENERS & INITIALIZATION ─────────────────────────────────────────
 document.getElementById('sortSelect').addEventListener('change', (e) => {
   currentSort = e.target.value;
@@ -933,8 +1051,8 @@ document.querySelectorAll('#examButtons .filter-btn').forEach(btn => {
   });
 });
 
-// Khởi động Firebase (sẽ tự gọi updateDashboard khi có dữ liệu)
-initFirebase();
+// Kiểm tra session → nếu đã đăng nhập thì load Firebase, không thì hiện login
+checkSession();
 </script>
 </body>
 </html>
