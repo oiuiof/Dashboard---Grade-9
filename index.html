@@ -76,6 +76,7 @@ body[data-role="guest"] .btn-add-student { display:none !important; }
 body[data-role="guest"] .btn-pencil { display:none !important; }
 body[data-role="guest"] th.col-edit,
 body[data-role="guest"] td.col-edit { display:none !important; }
+.acc-error { color:#ff4d4f; font-size:13px; min-height:18px; margin-top:4px; }
 .loading-overlay { display:flex; position:fixed; top:0;left:0;width:100%;height:100%; background:#0d0d0d; z-index:9999; justify-content:center; align-items:center; flex-direction:column; gap:16px; transition:opacity 0.4s; }
 .loading-overlay.hidden { opacity:0; pointer-events:none; }
 .loading-spinner { width:48px; height:48px; border:4px solid #333; border-top-color:#ff9800; border-radius:50%; animation:spin 0.8s linear infinite; }
@@ -138,6 +139,7 @@ body[data-role="guest"] td.col-edit { display:none !important; }
   <div class="user-bar">
     <span id="userBadge" class="login-badge"></span>
     <span class="username" id="userBarName"></span>
+    <button id="btnManageAccounts" class="btn-logout" style="display:none;color:#ff9800;border-color:#ff9800;" onclick="openManageAccounts()">👥 Tài khoản</button>
     <button class="btn-logout" onclick="doLogout()">Đăng xuất</button>
   </div>
 </div>
@@ -252,6 +254,41 @@ body[data-role="guest"] td.col-edit { display:none !important; }
   </div>
 </div>
 
+</div>
+
+<!-- ── MODAL QUẢN LÝ TÀI KHOẢN ── -->
+<div class="edit-modal-overlay" id="manageAccountsModal">
+  <div class="edit-modal-box" style="max-width:500px;">
+    <h3>👥 Quản lý tài khoản</h3>
+
+    <div id="accountList" style="margin-bottom:20px;max-height:260px;overflow-y:auto;"></div>
+
+    <div style="border-top:1px solid #333;padding-top:16px;">
+      <div style="color:#aaa;font-size:13px;margin-bottom:10px;">➕ Thêm tài khoản mới</div>
+      <div class="edit-section-grid">
+        <div class="edit-field">
+          <label>Tên tài khoản</label>
+          <input type="text" id="newAccUser" placeholder="VD: Teacher01" />
+        </div>
+        <div class="edit-field">
+          <label>Mật khẩu</label>
+          <input type="password" id="newAccPass" placeholder="Nhập mật khẩu" />
+        </div>
+      </div>
+      <div class="edit-field">
+        <label>Phân quyền</label>
+        <select id="newAccRole">
+          <option value="guest">Guest (Chỉ xem)</option>
+          <option value="admin">Admin (Toàn quyền)</option>
+        </select>
+      </div>
+      <div class="acc-error" id="accError"></div>
+      <div class="edit-btn-row">
+        <button class="btn-cancel" onclick="closeManageAccounts()">Đóng</button>
+        <button class="btn-save" onclick="addAccount()">Thêm tài khoản</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── MODAL THÊM HỌC SINH ── -->
@@ -745,8 +782,8 @@ window.onclick = function(event) {
   if (event.target == modal) modal.style.display = 'none';
   const addModal = document.getElementById('addStudentModal');
   if (event.target == addModal) closeAddStudentModal();
-  const editModal = document.getElementById('editScoreModal');
-  if (event.target == editModal) closeEditScoreModal();
+  const mgModal = document.getElementById('manageAccountsModal');
+  if (event.target == mgModal) closeManageAccounts();
 }
 
 // ── THÊM / SỬA HỌC SINH ─────────────────────────────────────────────────────
@@ -963,12 +1000,29 @@ function deleteStudent(studentId, studentName) {
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
-const ACCOUNTS = {
+const DEFAULT_ACCOUNTS = {
   'Admin01': { password: 'Demo01', role: 'admin' },
   'Guest01': { password: 'Demo01', role: 'guest' },
 };
 
-let currentUser = null; // { username, role }
+let ACCOUNTS = {}; // Sẽ được load từ Firebase
+let currentUser = null;
+
+function initAccounts() {
+  const accountsRef = db.ref('accounts');
+  accountsRef.once('value', snap => {
+    if (!snap.exists()) {
+      accountsRef.set(DEFAULT_ACCOUNTS);
+      ACCOUNTS = { ...DEFAULT_ACCOUNTS };
+    } else {
+      ACCOUNTS = snap.val() || {};
+    }
+  });
+  // Lắng nghe real-time thay đổi accounts
+  accountsRef.on('value', snap => {
+    if (snap.exists()) ACCOUNTS = snap.val() || {};
+  });
+}
 
 function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
@@ -1002,20 +1056,19 @@ function doLogout() {
 function applyRoleUI() {
   if (!currentUser) return;
   const isAdmin = currentUser.role === 'admin';
-
-  // Update user bar
   const badge = document.getElementById('userBadge');
   badge.innerText = isAdmin ? 'Admin' : 'Guest';
   badge.className = 'login-badge ' + (isAdmin ? 'badge-admin' : 'badge-guest');
   document.getElementById('userBarName').innerText = currentUser.username;
-
-  // Ẩn/hiện nút Add, Edit, Delete dựa trên role
-  // (áp dụng qua CSS class)
   document.body.dataset.role = currentUser.role;
+  // Hiện/ẩn nút quản lý tài khoản
+  const mgBtn = document.getElementById('btnManageAccounts');
+  if (mgBtn) mgBtn.style.display = isAdmin ? 'inline-block' : 'none';
 }
 
-// Kiểm tra session đã đăng nhập chưa (khi reload trang)
 function checkSession() {
+  // Load accounts từ Firebase trước
+  initAccounts();
   try {
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
@@ -1025,6 +1078,62 @@ function checkSession() {
       initFirebase();
     }
   } catch(e) {}
+}
+
+// ── QUẢN LÝ TÀI KHOẢN (Admin only) ───────────────────────────────────────────
+function openManageAccounts() {
+  renderAccountList();
+  document.getElementById('manageAccountsModal').classList.add('active');
+}
+function closeManageAccounts() {
+  document.getElementById('manageAccountsModal').classList.remove('active');
+  document.getElementById('newAccUser').value = '';
+  document.getElementById('newAccPass').value = '';
+  document.getElementById('newAccRole').value = 'guest';
+  document.getElementById('accError').innerText = '';
+}
+
+function renderAccountList() {
+  const list = document.getElementById('accountList');
+  list.innerHTML = '';
+  for (let uname in ACCOUNTS) {
+    const acc = ACCOUNTS[uname];
+    const isCurrentUser = uname === currentUser.username;
+    list.innerHTML += `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:10px;margin-bottom:8px;">
+        <div>
+          <strong>${uname}</strong>
+          <span class="login-badge ${acc.role==='admin'?'badge-admin':'badge-guest'}" style="margin-left:8px;">${acc.role==='admin'?'Admin':'Guest'}</span>
+          ${isCurrentUser ? '<span style="color:#666;font-size:12px;margin-left:6px;">(bạn)</span>' : ''}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="color:#666;font-size:13px;">••••••</span>
+          ${!isCurrentUser ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
+        </div>
+      </div>`;
+  }
+}
+
+function addAccount() {
+  const uname = document.getElementById('newAccUser').value.trim();
+  const pass  = document.getElementById('newAccPass').value.trim();
+  const role  = document.getElementById('newAccRole').value;
+  const errEl = document.getElementById('accError');
+
+  if (!uname || !pass) { errEl.innerText = 'Vui lòng nhập đầy đủ!'; return; }
+  if (ACCOUNTS[uname])  { errEl.innerText = 'Tên tài khoản đã tồn tại!'; return; }
+
+  db.ref('accounts/' + uname).set({ password: pass, role });
+  errEl.innerText = '';
+  document.getElementById('newAccUser').value = '';
+  document.getElementById('newAccPass').value = '';
+  setTimeout(renderAccountList, 400);
+}
+
+function deleteAccount(uname) {
+  if (!confirm(`Xóa tài khoản "${uname}"?`)) return;
+  db.ref('accounts/' + uname).remove();
+  setTimeout(renderAccountList, 400);
 }
 
 // ── EVENT LISTENERS & INITIALIZATION ─────────────────────────────────────────
