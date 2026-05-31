@@ -121,7 +121,7 @@ body[data-role="guest"] td.col-edit { display:none !important; }
 </head>
 <body>
 <!-- ── LOGIN SCREEN ── -->
-<div class="login-overlay" id="loginOverlay">
+<div class="login-overlay hidden" id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">📊</div>
     <div class="login-title">Dashboard Khối 9</div>
@@ -1042,19 +1042,22 @@ const DEFAULT_ACCOUNTS = {
 let ACCOUNTS = {}; // Sẽ được load từ Firebase
 let currentUser = null;
 
-function initAccounts() {
+function initAccounts(callback) {
   const accountsRef = db.ref('accounts');
   accountsRef.once('value', snap => {
     if (!snap.exists()) {
-      accountsRef.set(DEFAULT_ACCOUNTS);
-      ACCOUNTS = { ...DEFAULT_ACCOUNTS };
+      accountsRef.set(DEFAULT_ACCOUNTS, () => {
+        ACCOUNTS = { ...DEFAULT_ACCOUNTS };
+        // Lắng nghe real-time
+        accountsRef.on('value', s => { if (s.exists()) ACCOUNTS = s.val() || {}; });
+        callback && callback();
+      });
     } else {
       ACCOUNTS = snap.val() || {};
+      // Lắng nghe real-time
+      accountsRef.on('value', s => { if (s.exists()) ACCOUNTS = s.val() || {}; });
+      callback && callback();
     }
-  });
-  // Lắng nghe real-time thay đổi accounts
-  accountsRef.on('value', snap => {
-    if (snap.exists()) ACCOUNTS = snap.val() || {};
   });
 }
 
@@ -1104,18 +1107,28 @@ function applyRoleUI() {
 }
 
 function checkSession() {
-  // Load accounts từ Firebase trước
-  initAccounts();
-  try {
-    const saved = sessionStorage.getItem('currentUser');
-    if (saved) {
-      currentUser = JSON.parse(saved);
-      document.getElementById('loginOverlay').classList.add('hidden');
-      applyRoleUI();
-      initFirebase();
-      initPresence();
-    }
-  } catch(e) {}
+  // Phải load accounts XONG mới cho phép đăng nhập hoặc auto-login
+  initAccounts(() => {
+    try {
+      const saved = sessionStorage.getItem('currentUser');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Kiểm tra tài khoản vẫn còn tồn tại
+        if (ACCOUNTS[parsed.username]) {
+          currentUser = parsed;
+          document.getElementById('loginOverlay').classList.add('hidden');
+          applyRoleUI();
+          initFirebase();
+          initPresence();
+          return;
+        } else {
+          sessionStorage.removeItem('currentUser');
+        }
+      }
+    } catch(e) {}
+    // Chưa đăng nhập → hiện login (ACCOUNTS đã sẵn sàng)
+    document.getElementById('loginOverlay').classList.remove('hidden');
+  });
 }
 
 // ── ONLINE PRESENCE ───────────────────────────────────────────────────────────
