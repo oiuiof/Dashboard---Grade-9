@@ -77,19 +77,6 @@ body[data-role="guest"] .btn-pencil { display:none !important; }
 body[data-role="guest"] th.col-edit,
 body[data-role="guest"] td.col-edit { display:none !important; }
 .acc-error { color:#ff4d4f; font-size:13px; min-height:18px; margin-top:4px; }
-/* Online avatars */
-.online-avatars { display:flex; align-items:center; gap:-6px; margin-left:16px; }
-.avatar-circle { width:36px; height:36px; border-radius:50%; border:2px solid #1a1a1a; background:#333; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; color:white; cursor:default; position:relative; margin-left:-8px; overflow:hidden; transition:transform 0.15s; }
-.avatar-circle:first-child { margin-left:0; }
-.avatar-circle:hover { transform:scale(1.15); z-index:10; }
-.avatar-circle img { width:100%; height:100%; object-fit:cover; }
-.avatar-tooltip { display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#222; border:1px solid #444; color:white; font-size:12px; padding:4px 10px; border-radius:8px; white-space:nowrap; pointer-events:none; z-index:100; }
-.avatar-circle:hover .avatar-tooltip { display:block; }
-/* Avatar upload in account modal */
-.avatar-upload-area { width:72px; height:72px; border-radius:50%; border:2px dashed #555; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:#111; flex-shrink:0; transition:0.2s; }
-.avatar-upload-area:hover { border-color:#ff9800; }
-.avatar-upload-area img { width:100%; height:100%; object-fit:cover; }
-.avatar-upload-label { color:#666; font-size:11px; text-align:center; line-height:1.3; padding:4px; }
 .loading-overlay { display:flex; position:fixed; top:0;left:0;width:100%;height:100%; background:#0d0d0d; z-index:9999; justify-content:center; align-items:center; flex-direction:column; gap:16px; transition:opacity 0.4s; }
 .loading-overlay.hidden { opacity:0; pointer-events:none; }
 .loading-spinner { width:48px; height:48px; border:4px solid #333; border-top-color:#ff9800; border-radius:50%; animation:spin 0.8s linear infinite; }
@@ -121,7 +108,7 @@ body[data-role="guest"] td.col-edit { display:none !important; }
 </head>
 <body>
 <!-- ── LOGIN SCREEN ── -->
-<div class="login-overlay hidden" id="loginOverlay">
+<div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">📊</div>
     <div class="login-title">Dashboard Khối 9</div>
@@ -148,10 +135,7 @@ body[data-role="guest"] td.col-edit { display:none !important; }
 <div class="container">
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-  <div style="display:flex;align-items:center;gap:4px;">
-    <div class="title" style="margin-bottom:0;">📊 Dashboard Phân Tích Kết Quả Khối 9</div>
-    <div class="online-avatars" id="onlineAvatars"></div>
-  </div>
+  <div class="title" style="margin-bottom:0;">📊 Dashboard Phân Tích Kết Quả Khối 9</div>
   <div class="user-bar">
     <span id="userBadge" class="login-badge"></span>
     <span class="username" id="userBarName"></span>
@@ -281,41 +265,23 @@ body[data-role="guest"] td.col-edit { display:none !important; }
 
     <div style="border-top:1px solid #333;padding-top:16px;">
       <div style="color:#aaa;font-size:13px;margin-bottom:10px;">➕ Thêm tài khoản mới</div>
-
-      <!-- Avatar upload -->
-      <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div class="avatar-upload-area" onclick="document.getElementById('newAccAvatarInput').click()">
-            <img id="newAccAvatarPreview" src="" style="display:none;" />
-            <div class="avatar-upload-label" id="newAccAvatarLabel">📷<br>Ảnh đại diện</div>
-          </div>
-          <input type="file" id="newAccAvatarInput" accept="image/*" style="display:none;" onchange="previewNewAvatar(event)" />
+      <div class="edit-section-grid">
+        <div class="edit-field">
+          <label>Tên tài khoản</label>
+          <input type="text" id="newAccUser" placeholder="VD: Teacher01" />
         </div>
-        <div style="flex:1;">
-          <div class="edit-section-grid">
-            <div class="edit-field">
-              <label>Tên tài khoản</label>
-              <input type="text" id="newAccUser" placeholder="VD: Teacher01" />
-            </div>
-            <div class="edit-field">
-              <label>Mật khẩu</label>
-              <input type="password" id="newAccPass" placeholder="Nhập mật khẩu" />
-            </div>
-          </div>
-          <div class="edit-field">
-            <label>Biệt danh</label>
-            <input type="text" id="newAccNick" placeholder="VD: Thầy Minh, Cô Lan..." />
-          </div>
-          <div class="edit-field">
-            <label>Phân quyền</label>
-            <select id="newAccRole">
-              <option value="guest">Guest (Chỉ xem)</option>
-              <option value="admin">Admin (Toàn quyền)</option>
-            </select>
-          </div>
+        <div class="edit-field">
+          <label>Mật khẩu</label>
+          <input type="password" id="newAccPass" placeholder="Nhập mật khẩu" />
         </div>
       </div>
-
+      <div class="edit-field">
+        <label>Phân quyền</label>
+        <select id="newAccRole">
+          <option value="guest">Guest (Chỉ xem)</option>
+          <option value="admin">Admin (Toàn quyền)</option>
+        </select>
+      </div>
       <div class="acc-error" id="accError"></div>
       <div class="edit-btn-row">
         <button class="btn-cancel" onclick="closeManageAccounts()">Đóng</button>
@@ -1035,29 +1001,26 @@ function deleteStudent(studentId, studentName) {
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 const DEFAULT_ACCOUNTS = {
-  'Admin01': { password: 'Demo01', role: 'admin', nickname: 'Admin', avatar: '' },
-  'Guest01': { password: 'Demo01', role: 'guest', nickname: 'Khách', avatar: '' },
+  'Admin01': { password: 'Demo01', role: 'admin' },
+  'Guest01': { password: 'Demo01', role: 'guest' },
 };
 
 let ACCOUNTS = {}; // Sẽ được load từ Firebase
 let currentUser = null;
 
-function initAccounts(callback) {
+function initAccounts() {
   const accountsRef = db.ref('accounts');
   accountsRef.once('value', snap => {
     if (!snap.exists()) {
-      accountsRef.set(DEFAULT_ACCOUNTS, () => {
-        ACCOUNTS = { ...DEFAULT_ACCOUNTS };
-        // Lắng nghe real-time
-        accountsRef.on('value', s => { if (s.exists()) ACCOUNTS = s.val() || {}; });
-        callback && callback();
-      });
+      accountsRef.set(DEFAULT_ACCOUNTS);
+      ACCOUNTS = { ...DEFAULT_ACCOUNTS };
     } else {
       ACCOUNTS = snap.val() || {};
-      // Lắng nghe real-time
-      accountsRef.on('value', s => { if (s.exists()) ACCOUNTS = s.val() || {}; });
-      callback && callback();
     }
+  });
+  // Lắng nghe real-time thay đổi accounts
+  accountsRef.on('value', snap => {
+    if (snap.exists()) ACCOUNTS = snap.val() || {};
   });
 }
 
@@ -1079,14 +1042,11 @@ function doLogin() {
   document.getElementById('loginOverlay').classList.add('hidden');
   applyRoleUI();
   initFirebase();
-  initPresence();
 }
 
 function doLogout() {
-  if (currentUser) db.ref('presence/' + currentUser.username).remove();
   currentUser = null;
   sessionStorage.removeItem('currentUser');
-  document.getElementById('onlineAvatars').innerHTML = '';
   document.getElementById('loginOverlay').classList.remove('hidden');
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
@@ -1107,85 +1067,20 @@ function applyRoleUI() {
 }
 
 function checkSession() {
-  // Phải load accounts XONG mới cho phép đăng nhập hoặc auto-login
-  initAccounts(() => {
-    try {
-      const saved = sessionStorage.getItem('currentUser');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Kiểm tra tài khoản vẫn còn tồn tại
-        if (ACCOUNTS[parsed.username]) {
-          currentUser = parsed;
-          document.getElementById('loginOverlay').classList.add('hidden');
-          applyRoleUI();
-          initFirebase();
-          initPresence();
-          return;
-        } else {
-          sessionStorage.removeItem('currentUser');
-        }
-      }
-    } catch(e) {}
-    // Chưa đăng nhập → hiện login (ACCOUNTS đã sẵn sàng)
-    document.getElementById('loginOverlay').classList.remove('hidden');
-  });
+  // Load accounts từ Firebase trước
+  initAccounts();
+  try {
+    const saved = sessionStorage.getItem('currentUser');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginOverlay').classList.add('hidden');
+      applyRoleUI();
+      initFirebase();
+    }
+  } catch(e) {}
 }
 
-// ── ONLINE PRESENCE ───────────────────────────────────────────────────────────
-function initPresence() {
-  if (!currentUser) return;
-  const acc = ACCOUNTS[currentUser.username] || {};
-  const presenceRef = db.ref('presence/' + currentUser.username);
-  const connRef = db.ref('.info/connected');
-
-  connRef.on('value', snap => {
-    if (!snap.val()) return;
-    presenceRef.onDisconnect().remove();
-    presenceRef.set({
-      username: currentUser.username,
-      nickname: acc.nickname || currentUser.username,
-      role: currentUser.role,
-      avatar: acc.avatar || '',
-      online: true
-    });
-  });
-
-  // Lắng nghe danh sách người online
-  db.ref('presence').on('value', snap => {
-    const online = snap.val() || {};
-    renderOnlineAvatars(online);
-  });
-}
-
-function getInitials(name) {
-  const parts = (name || '?').trim().split(/\s+/);
-  return parts.length > 1
-    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
-    : parts[0][0].toUpperCase();
-}
-
-function renderOnlineAvatars(online) {
-  const container = document.getElementById('onlineAvatars');
-  if (!container) return;
-  container.innerHTML = '';
-  const colors = ['#ff9800','#4caf50','#2196f3','#e91e63','#9c27b0','#00bcd4'];
-  let i = 0;
-  for (let uname in online) {
-    const u = online[uname];
-    const color = colors[i % colors.length];
-    const isMe = uname === currentUser.username;
-    const label = u.nickname || uname;
-    const avatarContent = u.avatar
-      ? `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;" />`
-      : `<span style="font-size:13px;font-weight:bold;">${getInitials(label)}</span>`;
-    container.innerHTML += `
-      <div class="avatar-circle" style="background:${color};border-color:${isMe?'#ff9800':'#1a1a1a'};" title="${label}">
-        ${avatarContent}
-        <div class="avatar-tooltip">${label}${isMe?' (bạn)':''}</div>
-      </div>`;
-    i++;
-  }
-}
+// ── QUẢN LÝ TÀI KHOẢN (Admin only) ───────────────────────────────────────────
 function openManageAccounts() {
   renderAccountList();
   document.getElementById('manageAccountsModal').classList.add('active');
@@ -1194,72 +1089,27 @@ function closeManageAccounts() {
   document.getElementById('manageAccountsModal').classList.remove('active');
   document.getElementById('newAccUser').value = '';
   document.getElementById('newAccPass').value = '';
-  document.getElementById('newAccNick').value = '';
   document.getElementById('newAccRole').value = 'guest';
   document.getElementById('accError').innerText = '';
-  newAvatarBase64 = '';
-  const prev = document.getElementById('newAccAvatarPreview');
-  const lbl  = document.getElementById('newAccAvatarLabel');
-  if (prev) { prev.src=''; prev.style.display='none'; }
-  if (lbl)  lbl.style.display='block';
 }
 
-let newAvatarBase64 = '';
-function previewNewAvatar(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    newAvatarBase64 = e.target.result;
-    const prev = document.getElementById('newAccAvatarPreview');
-    const lbl  = document.getElementById('newAccAvatarLabel');
-    prev.src = newAvatarBase64;
-    prev.style.display = 'block';
-    lbl.style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-function addAccount() {
-  const uname = document.getElementById('newAccUser').value.trim();
-  const pass  = document.getElementById('newAccPass').value.trim();
-  const nick  = document.getElementById('newAccNick').value.trim();
-  const role  = document.getElementById('newAccRole').value;
-  const errEl = document.getElementById('accError');
-
-  if (!uname || !pass) { errEl.innerText = 'Vui lòng nhập tên tài khoản và mật khẩu!'; return; }
-  if (ACCOUNTS[uname])  { errEl.innerText = 'Tên tài khoản đã tồn tại!'; return; }
-
-  db.ref('accounts/' + uname).set({ password: pass, role, nickname: nick || uname, avatar: newAvatarBase64 });
-  errEl.innerText = '';
-  document.getElementById('newAccUser').value = '';
-  document.getElementById('newAccPass').value = '';
-  document.getElementById('newAccNick').value = '';
-  newAvatarBase64 = '';
-  const prev = document.getElementById('newAccAvatarPreview');
-  const lbl  = document.getElementById('newAccAvatarLabel');
-  if (prev) { prev.src=''; prev.style.display='none'; }
-  if (lbl)  lbl.style.display='block';
-  setTimeout(renderAccountList, 400);
-}
+function renderAccountList() {
   const list = document.getElementById('accountList');
   list.innerHTML = '';
   for (let uname in ACCOUNTS) {
     const acc = ACCOUNTS[uname];
     const isCurrentUser = uname === currentUser.username;
-    const avatarHTML = acc.avatar
-      ? `<img src="${acc.avatar}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #333;" />`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${(acc.nickname||uname)[0].toUpperCase()}</div>`;
     list.innerHTML += `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:10px;margin-bottom:8px;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          ${avatarHTML}
-          <div>
-            <div style="font-weight:bold;">${uname} ${isCurrentUser?'<span style="color:#666;font-size:12px;">(bạn)</span>':''}</div>
-            <div style="color:#888;font-size:12px;">${acc.nickname||'—'} · <span class="login-badge ${acc.role==='admin'?'badge-admin':'badge-guest'}">${acc.role==='admin'?'Admin':'Guest'}</span></div>
-          </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:10px;margin-bottom:8px;">
+        <div>
+          <strong>${uname}</strong>
+          <span class="login-badge ${acc.role==='admin'?'badge-admin':'badge-guest'}" style="margin-left:8px;">${acc.role==='admin'?'Admin':'Guest'}</span>
+          ${isCurrentUser ? '<span style="color:#666;font-size:12px;margin-left:6px;">(bạn)</span>' : ''}
         </div>
-        ${!isCurrentUser ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="color:#666;font-size:13px;">••••••</span>
+          ${!isCurrentUser ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
+        </div>
       </div>`;
   }
 }
