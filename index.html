@@ -291,6 +291,35 @@ body[data-role="guest"] td.col-edit { display:none !important; }
   </div>
 </div>
 
+<!-- ── MODAL ĐỔI MẬT KHẨU ── -->
+<div class="edit-modal-overlay" id="changePassModal">
+  <div class="edit-modal-box" style="max-width:420px;">
+    <h3>🔑 Đổi mật khẩu</h3>
+    <div id="changePassTarget" style="color:#aaa;font-size:13px;margin-bottom:16px;"></div>
+
+    <!-- Xác nhận mật khẩu cũ (chỉ hiện khi đổi pass của chính mình) -->
+    <div class="edit-field" id="oldPassField">
+      <label>Mật khẩu hiện tại</label>
+      <input type="password" id="oldPassInput" placeholder="Nhập mật khẩu hiện tại" />
+    </div>
+
+    <div class="edit-field">
+      <label>Mật khẩu mới</label>
+      <input type="password" id="newPassInput" placeholder="Nhập mật khẩu mới" />
+    </div>
+    <div class="edit-field">
+      <label>Xác nhận mật khẩu mới</label>
+      <input type="password" id="confirmPassInput" placeholder="Nhập lại mật khẩu mới" />
+    </div>
+
+    <div class="acc-error" id="changePassError"></div>
+    <div class="edit-btn-row">
+      <button class="btn-cancel" onclick="closeChangePassModal()">Huỷ</button>
+      <button class="btn-save" onclick="saveNewPassword()">Lưu mật khẩu</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL THÊM HỌC SINH ── -->
 <div class="edit-modal-overlay" id="addStudentModal">
   <div class="edit-modal-box">
@@ -784,6 +813,8 @@ window.onclick = function(event) {
   if (event.target == addModal) closeAddStudentModal();
   const mgModal = document.getElementById('manageAccountsModal');
   if (event.target == mgModal) closeManageAccounts();
+  const cpModal = document.getElementById('changePassModal');
+  if (event.target == cpModal) closeChangePassModal();
 }
 
 // ── THÊM / SỬA HỌC SINH ─────────────────────────────────────────────────────
@@ -1096,19 +1127,22 @@ function closeManageAccounts() {
 function renderAccountList() {
   const list = document.getElementById('accountList');
   list.innerHTML = '';
+  const isAdmin = currentUser.role === 'admin';
   for (let uname in ACCOUNTS) {
     const acc = ACCOUNTS[uname];
-    const isCurrentUser = uname === currentUser.username;
+    const isMe = uname === currentUser.username;
+    // Nút đổi mật khẩu: chính mình luôn thấy; admin thấy của người khác
+    const canChangePass = isMe || isAdmin;
     list.innerHTML += `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:10px;margin-bottom:8px;">
         <div>
           <strong>${uname}</strong>
           <span class="login-badge ${acc.role==='admin'?'badge-admin':'badge-guest'}" style="margin-left:8px;">${acc.role==='admin'?'Admin':'Guest'}</span>
-          ${isCurrentUser ? '<span style="color:#666;font-size:12px;margin-left:6px;">(bạn)</span>' : ''}
+          ${isMe ? '<span style="color:#666;font-size:12px;margin-left:6px;">(bạn)</span>' : ''}
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span style="color:#666;font-size:13px;">••••••</span>
-          ${!isCurrentUser ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${canChangePass ? `<button onclick="openChangePassModal('${uname}')" style="background:none;border:1px solid #444;color:#aaa;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:8px;" title="Đổi mật khẩu">🔑 Đổi pass</button>` : ''}
+          ${(!isMe && isAdmin) ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
         </div>
       </div>`;
   }
@@ -1134,6 +1168,63 @@ function deleteAccount(uname) {
   if (!confirm(`Xóa tài khoản "${uname}"?`)) return;
   db.ref('accounts/' + uname).remove();
   setTimeout(renderAccountList, 400);
+}
+
+// ── ĐỔI MẬT KHẨU ─────────────────────────────────────────────────────────────
+let changingPassFor = null;
+
+function openChangePassModal(uname) {
+  changingPassFor = uname;
+  const isMe = uname === currentUser.username;
+  const isAdmin = currentUser.role === 'admin';
+
+  document.getElementById('changePassTarget').innerText =
+    isMe ? `Đổi mật khẩu tài khoản của bạn: ${uname}`
+         : `Admin đổi mật khẩu cho: ${uname}`;
+
+  // Chỉ yêu cầu mật khẩu cũ khi đổi của chính mình
+  const oldField = document.getElementById('oldPassField');
+  oldField.style.display = isMe ? 'block' : 'none';
+
+  document.getElementById('oldPassInput').value = '';
+  document.getElementById('newPassInput').value = '';
+  document.getElementById('confirmPassInput').value = '';
+  document.getElementById('changePassError').innerText = '';
+  document.getElementById('changePassModal').classList.add('active');
+}
+
+function closeChangePassModal() {
+  document.getElementById('changePassModal').classList.remove('active');
+  changingPassFor = null;
+}
+
+function saveNewPassword() {
+  const isMe = changingPassFor === currentUser.username;
+  const oldPass     = document.getElementById('oldPassInput').value;
+  const newPass     = document.getElementById('newPassInput').value.trim();
+  const confirmPass = document.getElementById('confirmPassInput').value.trim();
+  const errEl       = document.getElementById('changePassError');
+
+  // Kiểm tra mật khẩu cũ nếu đổi của chính mình
+  if (isMe) {
+    const currentPass = ACCOUNTS[changingPassFor]?.password;
+    if (oldPass !== currentPass) {
+      errEl.innerText = 'Mật khẩu hiện tại không đúng!';
+      return;
+    }
+  }
+
+  if (!newPass) { errEl.innerText = 'Vui lòng nhập mật khẩu mới!'; return; }
+  if (newPass.length < 4) { errEl.innerText = 'Mật khẩu phải có ít nhất 4 ký tự!'; return; }
+  if (newPass !== confirmPass) { errEl.innerText = 'Mật khẩu xác nhận không khớp!'; return; }
+
+  // Lưu lên Firebase
+  db.ref('accounts/' + changingPassFor + '/password').set(newPass, () => {
+    closeChangePassModal();
+    setTimeout(renderAccountList, 300);
+    if (isMe) alert('✅ Đổi mật khẩu thành công!');
+    else alert(`✅ Đã đổi mật khẩu cho tài khoản ${changingPassFor}!`);
+  });
 }
 
 // ── EVENT LISTENERS & INITIALIZATION ─────────────────────────────────────────
