@@ -1332,6 +1332,484 @@ function renderStudentView(studentId) {
     }
   });
 }
+const STUDENT_ACCOUNTS = {
+  "baoqn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A01"
+  },
+  "baotd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A02"
+  },
+  "chaudbl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A03"
+  },
+  "danmv01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A04"
+  },
+  "duongnth01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A05"
+  },
+  "hahnn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A06"
+  },
+  "haihn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A07"
+  },
+  "hoangdhn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A08"
+  },
+  "huygn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A09"
+  },
+  "minhnb01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A10"
+  },
+  "nghipp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A11"
+  },
+  "ngoctmp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A12"
+  },
+  "quynhtmn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A13"
+  },
+  "quynhmd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A14"
+  },
+  "tumb01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A15"
+  },
+  "tuancd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A16"
+  },
+  "vyttd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A17"
+  },
+  "yenhhn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9A18"
+  },
+  "anhl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B01"
+  },
+  "anhth01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B02"
+  },
+  "anhnb01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B03"
+  },
+  "anhtnl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B04"
+  },
+  "baoaqh01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B05"
+  },
+  "chaumd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B06"
+  },
+  "chaunn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B07"
+  },
+  "dungmn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B08"
+  },
+  "huongntn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B09"
+  },
+  "kietltp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B10"
+  },
+  "kyngd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B11"
+  },
+  "linhkp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B12"
+  },
+  "ngoctnl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B13"
+  },
+  "nhinbl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B14"
+  },
+  "phuctkn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B15"
+  },
+  "phuongbd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B16"
+  },
+  "quynhbt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B17"
+  },
+  "trucnnn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B18"
+  },
+  "vytyn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B19"
+  },
+  "yennhn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B20"
+  },
+  "hatn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B21"
+  },
+  "vyttn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9B22"
+  },
+  "anhhmb01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C01"
+  },
+  "anhnqn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C02"
+  },
+  "dungtv01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C03"
+  },
+  "hangt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C04"
+  },
+  "minhhn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C05"
+  },
+  "thyan01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C06"
+  },
+  "trucntb01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C07"
+  },
+  "tuyetpn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C08"
+  },
+  "vydtt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C09"
+  },
+  "uyendtn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C10"
+  },
+  "phatvtp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C11"
+  },
+  "giangthn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9C12"
+  },
+  "anhtt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D01"
+  },
+  "anhnqv01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D02"
+  },
+  "hantl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D03"
+  },
+  "hautv01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D04"
+  },
+  "huann01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D05"
+  },
+  "khoahmn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D06"
+  },
+  "khoahdn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D07"
+  },
+  "khoannt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D08"
+  },
+  "linhpd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D09"
+  },
+  "musrandyc01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D10"
+  },
+  "nauynn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D11"
+  },
+  "ngantt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D12"
+  },
+  "ngannkp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D13"
+  },
+  "ngoccbn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D14"
+  },
+  "nhatdat01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D15"
+  },
+  "nhinut01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D16"
+  },
+  "phucvhp01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D17"
+  },
+  "quanmv01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D18"
+  },
+  "thienat01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D19"
+  },
+  "ypnm01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D21"
+  },
+  "ybnn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9D22"
+  },
+  "annkn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E01"
+  },
+  "andtt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E02"
+  },
+  "annhn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E03"
+  },
+  "anhhd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E04"
+  },
+  "anhtbn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E05"
+  },
+  "binhtn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E06"
+  },
+  "duonghan01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E07"
+  },
+  "giaodqt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E08"
+  },
+  "khoanad01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E09"
+  },
+  "linhkd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E10"
+  },
+  "maixt01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E11"
+  },
+  "minhht01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E12"
+  },
+  "namnl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E13"
+  },
+  "nambn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E14"
+  },
+  "nguyenkl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E15"
+  },
+  "nhihtn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E16"
+  },
+  "phuccn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E17"
+  },
+  "phuongnhd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E18"
+  },
+  "quynn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E19"
+  },
+  "quynhpnl01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E20"
+  },
+  "vanntn01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E21"
+  },
+  "vinhqd01": {
+    "password": "Demo01",
+    "role": "student",
+    "linkedStudentId": "9E22"
+  }
+};
+
 const DEFAULT_ACCOUNTS = {
   'Admin01': { password: 'Demo01', role: 'admin' },
   'Guest01': { password: 'Demo01', role: 'guest' },
@@ -1344,10 +1822,20 @@ function initAccounts() {
   const accountsRef = db.ref('accounts');
   accountsRef.once('value', snap => {
     if (!snap.exists()) {
-      accountsRef.set(DEFAULT_ACCOUNTS);
-      ACCOUNTS = { ...DEFAULT_ACCOUNTS };
+      const allAccounts = { ...DEFAULT_ACCOUNTS, ...STUDENT_ACCOUNTS };
+      accountsRef.set(allAccounts);
+      ACCOUNTS = allAccounts;
     } else {
-      ACCOUNTS = snap.val() || {};
+      // Merge student accounts nếu chưa có
+      const existing = snap.val() || {};
+      const toAdd = {};
+      Object.entries(STUDENT_ACCOUNTS).forEach(([u, v]) => {
+        if (!existing[u]) toAdd[u] = v;
+      });
+      if (Object.keys(toAdd).length > 0) {
+        Object.entries(toAdd).forEach(([u, v]) => accountsRef.child(u).set(v));
+      }
+      ACCOUNTS = { ...existing, ...toAdd };
     }
   });
   // Lắng nghe real-time thay đổi accounts
