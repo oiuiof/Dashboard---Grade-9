@@ -987,37 +987,32 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const studentsRef = db.ref('students');
 
-// Ghi 1 học sinh lên Firebase
+// Ghi 1 học sinh lên Firebase (path: students/9A/9A01)
 function persistStudent(id) {
-  studentsRef.child(id).set(STUDENT_DATA[id]);
+  const s = STUDENT_DATA[id];
+  if (!s) return;
+  const cls = s.cls || id.slice(0,2); // e.g. "9A"
+  studentsRef.child(cls).child(id).set(s);
 }
 
 // Xóa 1 học sinh khỏi Firebase
 function removeStudent(id) {
-  studentsRef.child(id).remove();
+  const s = STUDENT_DATA[id];
+  const cls = (s && s.cls) || id.slice(0,2);
+  studentsRef.child(cls).child(id).remove();
 }
 
 // Khởi động: lắng nghe real-time
 // - Nếu Firebase rỗng → upload toàn bộ dữ liệu gốc rồi chờ listener fire lại
 // - Nếu có dữ liệu → dùng ngay
 function initFirebase() {
-  studentsRef.on('value', snapshot => {
-    const fbData = snapshot.val();
+  const STUDENTS_VERSION = 'v2-nested-by-class';
 
-    if (!fbData) {
-      // Firebase rỗng → upload dữ liệu gốc
-      // Listener sẽ tự fire lại sau khi upload xong
-      studentsRef.set(STUDENT_DATA);
-      return;
-    }
-
-    // Có dữ liệu → đồng bộ vào STUDENT_DATA
+  function processAndRender(flatData) {
+    // Đồng bộ vào STUDENT_DATA (flat: {9A01: ..., 9A02: ...})
     for (let k in STUDENT_DATA) delete STUDENT_DATA[k];
-    Object.assign(STUDENT_DATA, fbData);
-
-    // Firebase chuyển array → object, cần convert lại về array
-    // Đồng thời đảm bảo exams luôn tồn tại
-    let studentCount = 0;
+    Object.assign(STUDENT_DATA, flatData);
+    // Fix sections array
     for (let id in STUDENT_DATA) {
       const s = STUDENT_DATA[id];
       if (!s) continue;
@@ -1028,23 +1023,65 @@ function initFirebase() {
           exam.sections = Object.values(exam.sections).map(Number);
         }
       }
-      studentCount++;
     }
-    console.log(`[Firebase] Loaded ${studentCount} students`);
-    if (studentCount > 0) {
-      const sample = STUDENT_DATA[Object.keys(STUDENT_DATA)[0]];
-      console.log('[Firebase] Sample student:', JSON.stringify(sample).slice(0, 200));
-    }
-
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) overlay.classList.add('hidden');
-
     if (currentUser && currentUser.role === 'student' && currentUser.linkedStudentId) {
       renderStudentView(currentUser.linkedStudentId);
     } else {
       updateDashboard();
     }
+  }
 
+  function flattenStudents(nested) {
+    // nested: {9A: {9A01: {...}, 9A02: {...}}, 9B: {...}}
+    // → flat: {9A01: {...}, 9A02: {...}}
+    const flat = {};
+    for (let cls in nested) {
+      if (typeof nested[cls] === 'object' && nested[cls] !== null) {
+        for (let id in nested[cls]) {
+          flat[id] = nested[cls][id];
+        }
+      }
+    }
+    return flat;
+  }
+
+  function seedNestedStudents() {
+    // Chuyển STUDENT_DATA flat → nested by class rồi ghi lên Firebase
+    const nested = {};
+    for (let id in STUDENT_DATA) {
+      const s = STUDENT_DATA[id];
+      const cls = (s && s.cls) || id.slice(0, 2);
+      if (!nested[cls]) nested[cls] = {};
+      nested[cls][id] = s;
+    }
+    studentsRef.set(nested).then(() => {
+      db.ref('_meta/studentsVersion').set(STUDENTS_VERSION);
+      console.log('[Firebase] Seeded nested students structure');
+    });
+  }
+
+  db.ref('_meta/studentsVersion').once('value', verSnap => {
+    const currentVer = verSnap.val();
+    if (currentVer !== STUDENTS_VERSION) {
+      // Migrate: ghi lại theo cấu trúc nested
+      seedNestedStudents();
+    }
+  });
+
+  // Real-time listener — luôn flatten về flat khi nhận data
+  studentsRef.on('value', snapshot => {
+    const fbData = snapshot.val();
+    if (!fbData) {
+      seedNestedStudents();
+      return;
+    }
+    // Detect nested vs flat: nested có key là "9A","9B"... không có "name"
+    const keys = Object.keys(fbData);
+    const isNested = keys.length > 0 && fbData[keys[0]] && !fbData[keys[0]].name;
+    const flat = isNested ? flattenStudents(fbData) : fbData;
+    processAndRender(flat);
   }, error => {
     console.error('Firebase error:', error);
     const overlay = document.getElementById('loadingOverlay');
