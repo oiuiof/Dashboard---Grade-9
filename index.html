@@ -84,10 +84,18 @@ body[data-role="student"] td.col-edit { display:none !important; }
 /* Ẩn toàn bộ dashboard khối với học sinh */
 body[data-role="student"] #dashboardContent { display:none !important; }
 body[data-role="student"] #unavailableText { display:none !important; }
-body[data-role="student"] .filter-bar { display:none !important; }
-body[data-role="student"] .top-bar { display:none !important; }
+body[data-role="student"] .filters { display:none !important; }
+body[data-role="student"] #pageHeader .title { display:none !important; }
 /* Student personal dashboard */
 #studentView { display:none; }
+/* Bảng điểm thành phần */
+#svSectionsTable tbody tr { border-bottom:1px solid #1e1e1e; transition:background 0.15s; }
+#svSectionsTable tbody tr:hover { background:rgba(255,152,0,0.05); }
+#svSectionsTable td { padding:9px 6px; text-align:center; color:#ccc; }
+#svSectionsTable td:first-child { text-align:left; color:#ff9800; font-weight:bold; padding-left:10px; }
+#svSectionsTable td:last-child { font-weight:bold; color:white; }
+.sect-val { font-size:14px; }
+.sect-max { color:#4a4a4a; font-size:11px; }
 .sv-card { background:#1a1a1a; border:1px solid #333; border-radius:16px; padding:20px 24px; margin-bottom:16px; }
 .sv-title { font-size:18px; font-weight:bold; color:#ff9800; margin-bottom:16px; }
 .sv-exam-row { display:grid; grid-template-columns:80px 1fr 120px 120px; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid #222; }
@@ -164,7 +172,7 @@ body[data-role="student"] .top-bar { display:none !important; }
 
 <div class="container">
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+<div id="pageHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
   <div class="title" style="margin-bottom:0;">📊 Dashboard Phân Tích Kết Quả Khối 9</div>
   <div class="user-bar">
     <span id="userBadge" class="login-badge"></span>
@@ -531,6 +539,29 @@ body[data-role="student"] .top-bar { display:none !important; }
     <div class="sv-title">📈 Xu hướng điểm qua các đề</div>
     <div style="position:relative;height:220px;">
       <canvas id="svChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Bảng điểm thành phần -->
+  <div class="sv-card">
+    <div class="sv-title">🔍 Điểm thành phần từng đề</div>
+    <div style="overflow-x:auto;">
+      <table id="svSectionsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="color:#666;border-bottom:1px solid #333;">
+            <th style="padding:8px 10px;text-align:left;white-space:nowrap;">Đề</th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Pronunciation<br><span style='color:#444'>/1.0</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Uses of English<br><span style='color:#444'>/3.0</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Cloze Test<br><span style='color:#444'>/1.5</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Reading<br><span style='color:#444'>/1.5</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Wordform<br><span style='color:#444'>/1.5</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Dictionary<br><span style='color:#444'>/0.5</span></th>
+            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Rewrite<br><span style='color:#444'>/1.0</span></th>
+            <th style="padding:8px 10px;text-align:center;white-space:nowrap;">Tổng</th>
+          </tr>
+        </thead>
+        <tbody id="svSectionsBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -1264,6 +1295,28 @@ function renderStudentView(studentId) {
       </div>`;
     chartLabels.push(`Đề ${num}`);
     chartData.push(exam.total);
+  });
+
+  // Sections table
+  const sectionsBody = document.getElementById('svSectionsBody');
+  const maxes = [1.0, 3.0, 1.5, 1.5, 1.5, 0.5, 1.0];
+  const sectionNames = ['Pronunciation','Uses of English','Cloze Test','Reading','Wordform','Dictionary','Rewrite'];
+  sectionsBody.innerHTML = '';
+  examNums.forEach(num => {
+    const exam = exams[num];
+    if (!exam || exam.total <= 0) return;
+    const sects = exam.sections || [0,0,0,0,0,0,0];
+    const scoreColor = exam.total >= 8 ? '#4caf50' : exam.total >= 6.5 ? '#ff9800' : '#f44336';
+    let cells = sects.map((v, i) => {
+      const pct = maxes[i] > 0 ? v / maxes[i] : 0;
+      const clr = pct >= 0.8 ? '#4caf50' : pct >= 0.5 ? '#ff9800' : '#f44336';
+      return `<td><span class="sect-val" style="color:${clr}">${v.toFixed(1)}</span></td>`;
+    }).join('');
+    sectionsBody.innerHTML += `<tr>
+      <td>Đề ${num}</td>
+      ${cells}
+      <td style="color:${scoreColor}">${exam.total.toFixed(2)}</td>
+    </tr>`;
   });
 
   // Chart
