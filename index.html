@@ -1853,42 +1853,34 @@ let currentUser = null;
 
 function initAccounts() {
   const rootRef = db.ref('accounts');
-  rootRef.once('value', snap => {
-    if (!snap.exists()) {
-      // Lần đầu: seed toàn bộ nested structure
-      rootRef.set(FIREBASE_ACCOUNTS);
-      ACCOUNTS = flattenAccounts(FIREBASE_ACCOUNTS);
-    } else {
-      const existing = snap.val() || {};
-      // Kiểm tra có đúng cấu trúc nested chưa
-      const isNested = existing.admin && existing.admin['Admin01'];
-      if (!isNested) {
-        // Force migrate: xóa flat, ghi nested mới
-        rootRef.set(FIREBASE_ACCOUNTS);
+  const VERSION = 'v3-nested-by-class'; // Tăng version này mỗi khi muốn force migrate
+
+  db.ref('_meta/accountsVersion').once('value', verSnap => {
+    const currentVer = verSnap.val();
+    if (currentVer !== VERSION) {
+      // Version khác → migrate sang cấu trúc mới
+      rootRef.set(FIREBASE_ACCOUNTS).then(() => {
+        db.ref('_meta/accountsVersion').set(VERSION);
         ACCOUNTS = flattenAccounts(FIREBASE_ACCOUNTS);
-      } else {
-        // Đã nested — merge thêm student còn thiếu
+        console.log('[Accounts] Migrated to', VERSION);
+      });
+    } else {
+      // Đã đúng version → chỉ merge thêm nếu thiếu
+      rootRef.once('value', snap => {
+        const existing = snap.val() || {};
         const existingFlat = flattenAccounts(existing);
-        const toSeed = {};
+        const updates = {};
         Object.entries(FIREBASE_ACCOUNTS.students || {}).forEach(([cls, accs]) => {
           Object.entries(accs).forEach(([u, v]) => {
-            if (!existingFlat[u]) toSeed[`students/${cls}/${u}`] = v;
+            if (!existingFlat[u]) updates[`students/${cls}/${u}`] = v;
           });
         });
-        if (Object.keys(toSeed).length > 0) {
-          const updates = {};
-          Object.entries(toSeed).forEach(([path, val]) => { updates[path] = val; });
-          rootRef.update(updates);
-        }
+        if (Object.keys(updates).length > 0) rootRef.update(updates);
         ACCOUNTS = flattenAccounts(existing);
-        // Merge mới seed vào local
-        Object.entries(toSeed).forEach(([path, val]) => {
-          const u = path.split('/').pop();
-          ACCOUNTS[u] = val;
-        });
-      }
+      });
     }
   });
+
   // Real-time sync
   rootRef.on('value', snap => {
     if (snap.exists()) ACCOUNTS = flattenAccounts(snap.val() || {});
