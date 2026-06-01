@@ -522,16 +522,27 @@ body[data-role="student"] #pageHeader .title { display:none !important; }
     </div>
   </div>
 
-  <!-- Bảng điểm từng đề -->
-  <div class="sv-card">
+  <!-- Bảng gộp: điểm thành phần + hạng -->
+  <div class="sv-card" style="overflow-x:auto;">
     <div class="sv-title">📋 Điểm từng đề thi</div>
-    <div class="sv-header-row">
-      <div>Đề</div>
-      <div>Điểm</div>
-      <div style="text-align:center;">Hạng lớp</div>
-      <div style="text-align:center;">Hạng khối</div>
-    </div>
-    <div id="svExamList"></div>
+    <table id="svExamTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px;">
+      <thead>
+        <tr style="border-bottom:2px solid #333;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">
+          <th style="padding:8px 10px;text-align:left;">Đề</th>
+          <th style="padding:8px 6px;text-align:center;">Pronunciation<br><span style="color:#3a3a3a;font-size:10px;">/1.0</span></th>
+          <th style="padding:8px 6px;text-align:center;">Uses of English<br><span style="color:#3a3a3a;font-size:10px;">/3.0</span></th>
+          <th style="padding:8px 6px;text-align:center;">Cloze Test<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
+          <th style="padding:8px 6px;text-align:center;">Reading<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
+          <th style="padding:8px 6px;text-align:center;">Wordform<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
+          <th style="padding:8px 6px;text-align:center;">Dictionary<br><span style="color:#3a3a3a;font-size:10px;">/0.5</span></th>
+          <th style="padding:8px 6px;text-align:center;">Rewrite<br><span style="color:#3a3a3a;font-size:10px;">/1.0</span></th>
+          <th style="padding:8px 10px;text-align:center;">Tổng</th>
+          <th style="padding:8px 10px;text-align:center;">Hạng lớp</th>
+          <th style="padding:8px 10px;text-align:center;">Hạng khối</th>
+        </tr>
+      </thead>
+      <tbody id="svExamList"></tbody>
+    </table>
   </div>
 
   <!-- Biểu đồ điểm -->
@@ -542,28 +553,7 @@ body[data-role="student"] #pageHeader .title { display:none !important; }
     </div>
   </div>
 
-  <!-- Bảng điểm thành phần -->
-  <div class="sv-card">
-    <div class="sv-title">🔍 Điểm thành phần từng đề</div>
-    <div style="overflow-x:auto;">
-      <table id="svSectionsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead>
-          <tr style="color:#666;border-bottom:1px solid #333;">
-            <th style="padding:8px 10px;text-align:left;white-space:nowrap;">Đề</th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Pronunciation<br><span style='color:#444'>/1.0</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Uses of English<br><span style='color:#444'>/3.0</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Cloze Test<br><span style='color:#444'>/1.5</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Reading<br><span style='color:#444'>/1.5</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Wordform<br><span style='color:#444'>/1.5</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Dictionary<br><span style='color:#444'>/0.5</span></th>
-            <th style="padding:8px 6px;text-align:center;white-space:nowrap;">Rewrite<br><span style='color:#444'>/1.0</span></th>
-            <th style="padding:8px 10px;text-align:center;white-space:nowrap;">Tổng</th>
-          </tr>
-        </thead>
-        <tbody id="svSectionsBody"></tbody>
-      </table>
-    </div>
-  </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1277,49 +1267,37 @@ function renderStudentView(studentId) {
     if (!exam || exam.total <= 0) return;
 
     const { gradeRank, gradeTotal, classRank, classTotal } = calcRankForExam(studentId, num);
-    const clsColor  = getRankColor(classRank, classTotal);
+    const clsColor   = getRankColor(classRank, classTotal);
     const gradeColor = getRankColor(gradeRank, gradeTotal);
+    const maxes = [1.0, 3.0, 1.5, 1.5, 1.5, 0.5, 1.0];
+    const sects = exam.sections || [0,0,0,0,0,0,0];
+    const scoreColor = exam.total >= 8 ? '#4caf50' : exam.total >= 6.5 ? '#ff9800' : '#f44336';
 
-    examListEl.innerHTML += `
-      <div class="sv-exam-row">
-        <div class="sv-exam-num">Đề ${num}</div>
-        <div class="sv-score">${exam.total.toFixed(2)}</div>
-        <div class="sv-rank">
-          <div class="sv-rank-num ${clsColor}">${classRank}/${classTotal}</div>
-          <div class="sv-rank-label">trong lớp</div>
-        </div>
-        <div class="sv-rank">
-          <div class="sv-rank-num ${gradeColor}">${gradeRank}/${gradeTotal}</div>
-          <div class="sv-rank-label">toàn khối</div>
-        </div>
-      </div>`;
+    const sectCells = sects.map((v, i) => {
+      const pct = maxes[i] > 0 ? v / maxes[i] : 0;
+      const clr = pct >= 0.8 ? '#4caf50' : pct >= 0.5 ? '#ff9800' : '#f44336';
+      return `<td style="text-align:center;padding:10px 6px;"><span style="font-size:14px;color:${clr}">${v.toFixed(1)}</span></td>`;
+    }).join('');
+
+    examListEl.innerHTML += `<tr style="border-bottom:1px solid #1e1e1e;">
+      <td style="padding:10px 10px;color:#ff9800;font-weight:bold;white-space:nowrap;">Đề ${num}</td>
+      ${sectCells}
+      <td style="padding:10px;text-align:center;font-size:16px;font-weight:bold;color:${scoreColor};">${exam.total.toFixed(2)}</td>
+      <td style="padding:10px;text-align:center;">
+        <div style="font-size:16px;font-weight:bold;" class="${clsColor}">${classRank}/${classTotal}</div>
+        <div style="font-size:11px;color:#666;">trong lớp</div>
+      </td>
+      <td style="padding:10px;text-align:center;">
+        <div style="font-size:16px;font-weight:bold;" class="${gradeColor}">${gradeRank}/${gradeTotal}</div>
+        <div style="font-size:11px;color:#666;">toàn khối</div>
+      </td>
+    </tr>`;
+
     chartLabels.push(`Đề ${num}`);
     chartData.push(exam.total);
   });
 
-  // Sections table
-  const sectionsBody = document.getElementById('svSectionsBody');
-  const maxes = [1.0, 3.0, 1.5, 1.5, 1.5, 0.5, 1.0];
-  const sectionNames = ['Pronunciation','Uses of English','Cloze Test','Reading','Wordform','Dictionary','Rewrite'];
-  sectionsBody.innerHTML = '';
-  examNums.forEach(num => {
-    const exam = exams[num];
-    if (!exam || exam.total <= 0) return;
-    const sects = exam.sections || [0,0,0,0,0,0,0];
-    const scoreColor = exam.total >= 8 ? '#4caf50' : exam.total >= 6.5 ? '#ff9800' : '#f44336';
-    let cells = sects.map((v, i) => {
-      const pct = maxes[i] > 0 ? v / maxes[i] : 0;
-      const clr = pct >= 0.8 ? '#4caf50' : pct >= 0.5 ? '#ff9800' : '#f44336';
-      return `<td><span class="sect-val" style="color:${clr}">${v.toFixed(1)}</span></td>`;
-    }).join('');
-    sectionsBody.innerHTML += `<tr>
-      <td>Đề ${num}</td>
-      ${cells}
-      <td style="color:${scoreColor}">${exam.total.toFixed(2)}</td>
-    </tr>`;
-  });
-
-  // Chart
+    // Chart
   const ctx = document.getElementById('svChart').getContext('2d');
   if (svChart) svChart.destroy();
   svChart = new Chart(ctx, {
