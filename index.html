@@ -525,20 +525,27 @@ body[data-role="student"] #pageHeader .title { display:none !important; }
   <!-- Bảng gộp: điểm thành phần + hạng -->
   <div class="sv-card" style="overflow-x:auto;">
     <div class="sv-title">📋 Điểm từng đề thi</div>
-    <table id="svExamTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px;">
+    <table id="svExamTable" style="width:100%;border-collapse:collapse;table-layout:fixed;">
+      <colgroup>
+        <col style="width:70px">
+        <col><col><col><col><col><col><col>
+        <col style="width:80px">
+        <col style="width:100px">
+        <col style="width:100px">
+      </colgroup>
       <thead>
-        <tr style="border-bottom:2px solid #333;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">
-          <th style="padding:8px 10px;text-align:left;">Đề</th>
-          <th style="padding:8px 6px;text-align:center;">Pronunciation<br><span style="color:#3a3a3a;font-size:10px;">/1.0</span></th>
-          <th style="padding:8px 6px;text-align:center;">Uses of English<br><span style="color:#3a3a3a;font-size:10px;">/3.0</span></th>
-          <th style="padding:8px 6px;text-align:center;">Cloze Test<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
-          <th style="padding:8px 6px;text-align:center;">Reading<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
-          <th style="padding:8px 6px;text-align:center;">Wordform<br><span style="color:#3a3a3a;font-size:10px;">/1.5</span></th>
-          <th style="padding:8px 6px;text-align:center;">Dictionary<br><span style="color:#3a3a3a;font-size:10px;">/0.5</span></th>
-          <th style="padding:8px 6px;text-align:center;">Rewrite<br><span style="color:#3a3a3a;font-size:10px;">/1.0</span></th>
-          <th style="padding:8px 10px;text-align:center;">Tổng</th>
-          <th style="padding:8px 10px;text-align:center;">Hạng lớp</th>
-          <th style="padding:8px 10px;text-align:center;">Hạng khối</th>
+        <tr style="border-bottom:2px solid #333;">
+          <th style="padding:12px 10px;text-align:left;color:#555;font-size:12px;font-weight:600;text-transform:uppercase;">Đề</th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Pronunciation<br><span style="color:#444;font-size:11px;font-weight:400;">/1.0</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Uses of English<br><span style="color:#444;font-size:11px;font-weight:400;">/3.0</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Cloze Test<br><span style="color:#444;font-size:11px;font-weight:400;">/1.5</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Reading<br><span style="color:#444;font-size:11px;font-weight:400;">/1.5</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Wordform<br><span style="color:#444;font-size:11px;font-weight:400;">/1.5</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Dictionary<br><span style="color:#444;font-size:11px;font-weight:400;">/0.5</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Rewrite<br><span style="color:#444;font-size:11px;font-weight:400;">/1.0</span></th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Tổng</th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Hạng lớp</th>
+          <th style="padding:12px 8px;text-align:center;color:#555;font-size:13px;font-weight:600;">Hạng khối</th>
         </tr>
       </thead>
       <tbody id="svExamList"></tbody>
@@ -1276,18 +1283,18 @@ function renderStudentView(studentId) {
     const sectCells = sects.map((v, i) => {
       const pct = maxes[i] > 0 ? v / maxes[i] : 0;
       const clr = pct >= 0.8 ? '#4caf50' : pct >= 0.5 ? '#ff9800' : '#f44336';
-      return `<td style="text-align:center;padding:10px 6px;"><span style="font-size:14px;color:${clr}">${v.toFixed(1)}</span></td>`;
+      return `<td style="text-align:center;padding:12px 8px;"><span style="font-size:16px;font-weight:bold;color:${clr}">${v.toFixed(1)}</span></td>`;
     }).join('');
 
     examListEl.innerHTML += `<tr style="border-bottom:1px solid #1e1e1e;">
-      <td style="padding:10px 10px;color:#ff9800;font-weight:bold;white-space:nowrap;">Đề ${num}</td>
+      <td style="padding:12px 10px;color:#ff9800;font-weight:bold;font-size:15px;white-space:nowrap;">Đề ${num}</td>
       ${sectCells}
-      <td style="padding:10px;text-align:center;font-size:16px;font-weight:bold;color:${scoreColor};">${exam.total.toFixed(2)}</td>
-      <td style="padding:10px;text-align:center;">
+      <td style="padding:12px 8px;text-align:center;font-size:16px;font-weight:bold;color:${scoreColor};">${exam.total.toFixed(2)}</td>
+      <td style="padding:12px 8px;text-align:center;">
         <div style="font-size:16px;font-weight:bold;" class="${clsColor}">${classRank}/${classTotal}</div>
         <div style="font-size:11px;color:#666;">trong lớp</div>
       </td>
-      <td style="padding:10px;text-align:center;">
+      <td style="padding:12px 8px;text-align:center;">
         <div style="font-size:16px;font-weight:bold;" class="${gradeColor}">${gradeRank}/${gradeTotal}</div>
         <div style="font-size:11px;color:#666;">toàn khối</div>
       </td>
