@@ -81,6 +81,11 @@ body[data-role="student"] .btn-add-student { display:none !important; }
 body[data-role="student"] .btn-pencil { display:none !important; }
 body[data-role="student"] th.col-edit,
 body[data-role="student"] td.col-edit { display:none !important; }
+/* Ẩn toàn bộ dashboard khối với học sinh */
+body[data-role="student"] #dashboardContent { display:none !important; }
+body[data-role="student"] #unavailableText { display:none !important; }
+body[data-role="student"] .filter-bar { display:none !important; }
+body[data-role="student"] .top-bar { display:none !important; }
 /* Student personal dashboard */
 #studentView { display:none; }
 .sv-card { background:#1a1a1a; border:1px solid #333; border-radius:16px; padding:20px 24px; margin-bottom:16px; }
@@ -1356,15 +1361,26 @@ function applyRoleUI() {
   const mgBtn = document.getElementById('btnManageAccounts');
   if (mgBtn) mgBtn.style.display = isAdmin ? 'inline-block' : 'none';
 
-  if (isStudent && currentUser.linkedStudentId) {
-    const tryRender = () => {
-      if (STUDENT_DATA[currentUser.linkedStudentId]) {
-        renderStudentView(currentUser.linkedStudentId);
-      } else {
-        setTimeout(tryRender, 300);
-      }
-    };
-    tryRender();
+  if (isStudent) {
+    if (currentUser.linkedStudentId) {
+      const tryRender = () => {
+        if (STUDENT_DATA[currentUser.linkedStudentId]) {
+          renderStudentView(currentUser.linkedStudentId);
+        } else {
+          setTimeout(tryRender, 300);
+        }
+      };
+      tryRender();
+    } else {
+      // Học sinh chưa được liên kết với dữ liệu
+      document.getElementById('studentView').style.display = 'block';
+      document.getElementById('studentView').innerHTML = `
+        <div style="padding:60px 24px;text-align:center;color:#aaa;">
+          <div style="font-size:48px;margin-bottom:16px;">📋</div>
+          <div style="font-size:20px;font-weight:bold;color:#ff9800;margin-bottom:8px;">Tài khoản chưa được liên kết</div>
+          <div style="font-size:14px;">Vui lòng liên hệ giáo viên để được cấp quyền xem dữ liệu cá nhân.</div>
+        </div>`;
+    }
   }
 }
 
