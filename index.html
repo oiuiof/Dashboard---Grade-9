@@ -116,7 +116,7 @@ body[data-role="student"] #pageHeader .title { display:none !important; }
 .sv-stat-lbl { font-size:12px; color:#666; margin-top:4px; }
 .acc-error { color:#ff4d4f; font-size:13px; min-height:18px; margin-top:4px; }
 .loading-overlay { display:flex; position:fixed; top:0;left:0;width:100%;height:100%; background:#0d0d0d; z-index:9999; justify-content:center; align-items:center; flex-direction:column; gap:16px; transition:opacity 0.4s; }
-.loading-overlay.hidden { opacity:0; pointer-events:none; }
+.loading-overlay.hidden { opacity:0; pointer-events:none; display:none; }
 .loading-spinner { width:48px; height:48px; border:4px solid #333; border-top-color:#ff9800; border-radius:50%; animation:spin 0.8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .loading-text { color:#999; font-size:16px; }
@@ -142,6 +142,77 @@ body[data-role="student"] #pageHeader .title { display:none !important; }
 .exam-tab { background:#222; border:1px solid #444; color:#aaa; padding:5px 12px; border-radius:8px; cursor:pointer; font-size:13px; }
 .exam-tab.active { background:#ff9800; color:black; border-color:#ff9800; font-weight:bold; }
 .edit-note { font-size:12px; color:#666; margin-top:4px; }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Mobile & Tablet
+═══════════════════════════════════════════════ */
+
+/* Tablet (≤ 1024px) */
+@media (max-width: 1024px) {
+  .container { padding: 0 12px; }
+  .filters { flex-direction: column; gap: 12px; }
+  .filter-box { width: 100%; }
+  .stats-row { gap: 8px; }
+  .stat-box { padding: 14px 10px; }
+  .top-bar-inner { flex-wrap: wrap; gap: 8px; }
+}
+
+/* Mobile (≤ 768px) */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  .container { padding: 0 8px; }
+
+  /* Header */
+  .top-bar-inner { padding: 8px 12px; gap: 8px; }
+  .title { font-size: 16px !important; }
+  #userBar { gap: 6px; }
+  .login-badge { font-size: 11px; padding: 2px 8px; }
+
+  /* Filters */
+  .filters { flex-direction: column; gap: 10px; padding: 12px; }
+  .filter-box { width: 100%; box-sizing: border-box; }
+  .class-btn, .exam-btn { font-size: 12px; padding: 5px 10px; }
+  .filter-buttons { flex-wrap: wrap; gap: 6px; }
+
+  /* Stats */
+  .stats-row { flex-direction: column; gap: 8px; }
+  .stat-box { padding: 14px; border-radius: 12px; }
+  .stat-val { font-size: 28px; }
+
+  /* Table */
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 600px; font-size: 13px; }
+  th, td { padding: 8px 6px; }
+
+  /* Student View */
+  #studentView { padding: 10px 4px; }
+  .sv-card { padding: 16px 12px; border-radius: 14px; margin-bottom: 14px; }
+  .sv-title { font-size: 15px; }
+  .sv-stats { flex-direction: column; gap: 8px; }
+  .sv-stat-box { padding: 14px; border-radius: 12px; }
+  .sv-stat-val { font-size: 28px; }
+  #svExamTable { font-size: 11px; min-width: 700px; }
+  #svExamTable th, #svExamTable td { padding: 8px 4px; }
+  .sv-header-info h2 { font-size: 18px; }
+
+  /* Modal */
+  .modal-content { padding: 16px; border-radius: 16px; width: 95%; }
+  .edit-modal-box { padding: 20px 16px; width: 95%; }
+  .login-box { padding: 28px 20px; }
+
+  /* Chart */
+  canvas { max-height: 200px; }
+}
+
+/* Small mobile (≤ 480px) */
+@media (max-width: 480px) {
+  .title { font-size: 14px !important; }
+  .stat-val { font-size: 24px; }
+  .sv-stat-val { font-size: 24px; }
+  .class-btn, .exam-btn { font-size: 11px; padding: 4px 8px; }
+  .login-box { padding: 24px 16px; }
+  #svExamTable { font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -2166,6 +2237,16 @@ document.querySelectorAll('#examButtons .filter-btn').forEach(btn => {
 
 // Kiểm tra session → nếu đã đăng nhập thì load Firebase, không thì hiện login
 checkSession();
+
+// Fallback: nếu Firebase load quá lâu (mobile chậm) thì tự ẩn overlay sau 8 giây
+setTimeout(() => {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay && !overlay.classList.contains('hidden')) {
+    overlay.classList.add('hidden');
+    console.warn('[Timeout] Firebase load quá lâu');
+    updateDashboard();
+  }
+}, 8000);
 </script>
 </body>
 </html>
