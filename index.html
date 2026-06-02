@@ -29,8 +29,8 @@ body{ background:#111; color:white; padding:24px; }
 .table-wrapper{ overflow-x:auto; }
 table{ width:100%; border-collapse:collapse; }
 th,td{ padding:14px; text-align:center; border-bottom:1px solid #333; }
-#dataTable th:nth-child(2) { text-align:left; padding-left:12px; }
-#dataTable td:nth-child(2) { text-align:left; padding-left:12px; }
+#dataTable th:nth-child(2) { text-align:left; }
+#dataTable td:nth-child(2) { text-align:left; }
 #dataTable td:nth-child(3) { color:#888; font-size:13px; white-space:nowrap; }
 #dataTable th:nth-child(3) { color:#888; }
 th{ background:#151515; color:#999; }
@@ -550,7 +550,7 @@ canvas { max-height: 180px !important; }
         <thead>
           <tr>
             <th>#</th>
-            <th style="text-align:left;padding-left:12px;">Họ và tên</th><th>Lớp</th>
+            <th style="text-align:left;">Họ và tên</th><th>Lớp</th>
             <th>Pronunciation (/1.0)</th>
             <th>Uses of English (/3.0)</th>
             <th>Cloze test (/1.5)</th>
@@ -1119,7 +1119,7 @@ function updateDashboard() {
 
     let rowHTML = `<tr class="desktop-row">
       <td style="color:#999;font-size:13px;">${idx + 1}</td>
-      <td style="text-align:left;padding-left:12px;"><span class="student-link" onclick="openStudentModal('${s.id}')">${s.name}</span></td><td style="color:#aaa;font-size:13px;">${s.cls}</td>
+      <td style="text-align:left;"><span class="student-link" onclick="openStudentModal('${s.id}')">${s.name}</span></td><td style="color:#aaa;font-size:13px;">${s.cls}</td>
       ${sDesktop}
       <td><strong>${s.total.toFixed(2)}</strong></td>
       <td>${badge}</td>
