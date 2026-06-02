@@ -29,6 +29,10 @@ body{ background:#111; color:white; padding:24px; }
 .table-wrapper{ overflow-x:auto; }
 table{ width:100%; border-collapse:collapse; }
 th,td{ padding:14px; text-align:center; border-bottom:1px solid #333; }
+#dataTable th:nth-child(2) { text-align:left; padding-left:12px; }
+#dataTable td:nth-child(2) { text-align:left; padding-left:12px; }
+#dataTable td:nth-child(3) { color:#888; font-size:13px; white-space:nowrap; }
+#dataTable th:nth-child(3) { color:#888; }
 th{ background:#151515; color:#999; }
 tr:hover{ background:#222; }
 .badge{ padding:6px 12px; border-radius:999px; font-size:13px; }
@@ -313,6 +317,110 @@ canvas { max-height: 180px !important; }
   canvas { max-height: none !important; }
   .btn-add-student { float: right !important; margin: -4px 0 0 0; display: inline-block; }
 }
+
+/* ══ MOBILE CARD TABLE ══ */
+.mobile-card-row { display: none; }
+.desktop-row { display: table-row; }
+
+@media (max-width: 699px) {
+  /* Ẩn table header và desktop rows */
+  #dataTable thead { display: none; }
+  .desktop-row { display: none; }
+  .mobile-card-row { display: table-row; }
+  .mobile-card-row td { padding: 6px 0; border-bottom: 1px solid #1e1e1e; }
+
+  /* Card layout */
+  .mc-wrap {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mc-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .mc-num {
+    color: #555;
+    font-size: 12px;
+    min-width: 18px;
+    flex-shrink: 0;
+  }
+  .mc-name {
+    flex: 1;
+    font-weight: bold;
+    font-size: 14px;
+    color: #ff9800;
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mc-cls { color: #888; font-size: 12px; font-weight: normal; }
+  .mc-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .mc-total {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+  }
+
+  /* Sections row */
+  .mc-sects {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .mc-sect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 5px 7px;
+    min-width: 40px;
+    flex-shrink: 0;
+  }
+  .mc-sl {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .mc-sv {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ff9800;
+    margin-top: 2px;
+  }
+
+  /* Actions */
+  .mc-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .mc-actions .btn-pencil {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+  }
+
+  /* Table container không cần scroll ngang nữa */
+  .table-wrapper { overflow-x: visible; }
+  table { min-width: unset !important; width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -442,7 +550,7 @@ canvas { max-height: 180px !important; }
         <thead>
           <tr>
             <th>#</th>
-            <th>Học sinh / Lớp</th>
+            <th style="text-align:left;padding-left:12px;">Họ và tên</th><th>Lớp</th>
             <th>Pronunciation (/1.0)</th>
             <th>Uses of English (/3.0)</th>
             <th>Cloze test (/1.5)</th>
@@ -1005,14 +1113,34 @@ function updateDashboard() {
         : '<span class="badge bad">Yếu</span>';
         
     // Chèn Class .student-link và sự kiện onclick vào Tên học sinh
-    let rowHTML = `<tr>
+    const sLabels = ['Pron','UoE','Cloze','Read','WF','Dict','RW'];
+    const sMobile = s.sections.map((v,i) => `<span class="mc-sect"><span class="mc-sl">${sLabels[i]}</span><span class="mc-sv">${v.toFixed(1)}</span></span>`).join('');
+    const sDesktop = s.sections.map(v => `<td>${v.toFixed(1)}</td>`).join('');
+
+    let rowHTML = `<tr class="desktop-row">
       <td style="color:#999;font-size:13px;">${idx + 1}</td>
-      <td><span class="student-link" onclick="openStudentModal('${s.id}')"><strong>${s.name}</strong></span> (${s.cls})</td>
-      ${s.sections.map(v => `<td>${v.toFixed(1)}</td>`).join('')}
+      <td style="text-align:left;padding-left:12px;"><span class="student-link" onclick="openStudentModal('${s.id}')">${s.name}</span></td><td style="color:#aaa;font-size:13px;">${s.cls}</td>
+      ${sDesktop}
       <td><strong>${s.total.toFixed(2)}</strong></td>
       <td>${badge}</td>
       <td class="col-edit"><button class="btn-pencil" onclick="openEditScoreModal('${s.id}')" title="Sửa điểm">✏️</button></td>
       <td class="col-edit"><button class="btn-pencil" onclick="deleteStudent('${s.id}', '${s.name}')" title="Xóa học sinh" style="color:#ff4d4f;">🗑️</button></td>
+    </tr>
+    <tr class="mobile-card-row">
+      <td colspan="99">
+        <div class="mc-wrap">
+          <div class="mc-top">
+            <span class="mc-num">${idx+1}</span>
+            <span class="student-link mc-name" onclick="openStudentModal('${s.id}')">${s.name} <span class="mc-cls">(${s.cls})</span></span>
+            <span class="mc-right">${badge}<span class="mc-total">${s.total.toFixed(2)}</span></span>
+          </div>
+          <div class="mc-sects">${sMobile}</div>
+          <div class="mc-actions col-edit">
+            <button class="btn-pencil" onclick="openEditScoreModal('${s.id}')">✏️ Sửa</button>
+            <button class="btn-pencil" onclick="deleteStudent('${s.id}', '${s.name}')" style="color:#ff4d4f;">🗑️ Xóa</button>
+          </div>
+        </div>
+      </td>
     </tr>`;
     tbody.innerHTML += rowHTML;
   });
