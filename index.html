@@ -29,8 +29,8 @@ body{ background:#111; color:white; padding:24px; }
 .table-wrapper{ overflow-x:auto; }
 table{ width:100%; border-collapse:collapse; }
 th,td{ padding:14px; text-align:center; border-bottom:1px solid #333; }
-#dataTable th:nth-child(2) { text-align:left; }
-#dataTable td:nth-child(2) { text-align:left; }
+#dataTable th:nth-child(2) { text-align:left; padding-left:16px; }
+#dataTable td:nth-child(2) { text-align:left; padding-left:16px; }
 #dataTable td:nth-child(3) { color:#888; font-size:13px; white-space:nowrap; }
 #dataTable th:nth-child(3) { color:#888; }
 th{ background:#151515; color:#999; }
@@ -1005,7 +1005,19 @@ function updateDashboard() {
         }
       },
       scales: {
-        x: { ticks: { color: '#999' }, grid: { color: '#222' } },
+        x: {
+          ticks: {
+            color: '#999',
+            maxRotation: 0,
+            minRotation: 0,
+            callback: function(val, i) {
+              // Rút gọn label trên mobile
+              const labels = ['Pron', 'Uses of Eng', 'Cloze', 'Reading', 'Wordform', 'Dict', 'Rewrite'];
+              return window.innerWidth < 600 ? labels[i] : this.getLabelForValue(val);
+            }
+          },
+          grid: { color: '#222' }
+        },
         y: { ticks: { color: '#999' }, grid: { color: '#222' }, min: 0 }
       }
     }
