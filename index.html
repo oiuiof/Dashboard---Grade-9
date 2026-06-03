@@ -328,9 +328,62 @@ th { font-size: 11px; }
   .btn-add-student { float: right !important; margin: -4px 0 0 0; display: inline-block; }
 }
 
-/* Mobile table: scroll ngang đơn giản */
+/* Mobile table: scroll ngang */
 .mobile-card-row { display: none !important; }
 .desktop-row { display: table-row !important; }
+
+/* Tên học sinh không wrap */
+#dataTable td:nth-child(2) a,
+#dataTable td:nth-child(2) span { white-space: nowrap; }
+
+@media (max-width: 699px) {
+  /* Bảng scroll ngang mượt */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #dataTable { min-width: 680px; font-size: 12px; }
+  #dataTable th, #dataTable td { padding: 9px 6px; white-space: nowrap; }
+  #dataTable td:nth-child(2), #dataTable th:nth-child(2) { 
+    min-width: 130px; 
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ══ SHORT/FULL HEADER LABELS ══ */
+.th-short { display: none; }
+.th-full  { display: inline; }
+
+@media (max-width: 699px) {
+  /* Hiện label rút gọn, ẩn label đầy đủ */
+  .th-short { display: inline; font-size: 11px; }
+  .th-full  { display: none; }
+
+  /* Tên học sinh không wrap */
+  #dataTable td:nth-child(2) { white-space: nowrap; }
+
+  /* Bảng scroll ngang mượt */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+  #dataTable {
+    min-width: 520px;
+    font-size: 12px;
+  }
+  #dataTable th, #dataTable td {
+    padding: 9px 6px;
+    white-space: nowrap;
+  }
+  /* Chỉ cột tên được wrap */
+  #dataTable td:nth-child(2) {
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 </style>
 </head>
 <body>
@@ -460,18 +513,18 @@ th { font-size: 11px; }
         <thead>
           <tr>
             <th>#</th>
-            <th style="text-align:left;">Họ và tên</th><th>Lớp</th>
-            <th>Pronunciation (/1.0)</th>
-            <th>Uses of English (/3.0)</th>
-            <th>Cloze test (/1.5)</th>
-            <th>Reading (/1.5)</th>
-            <th>Wordform (/1.5)</th>
-            <th>Dictionary (/0.5)</th>
-            <th>Rewrite (/1.0)</th>
-            <th>Điểm Tổng</th>
-            <th>Đánh giá</th>
-            <th class="col-edit">Sửa</th>
-            <th class="col-edit">Xóa</th>
+            <th style="text-align:left;">Họ và tên</th>
+            <th>Lớp</th>
+            <th><span class="th-full">Pronunciation (/1.0)</span><span class="th-short">Pron</span></th>
+            <th><span class="th-full">Uses of English (/3.0)</span><span class="th-short">UoE</span></th>
+            <th><span class="th-full">Cloze test (/1.5)</span><span class="th-short">Cloze</span></th>
+            <th><span class="th-full">Reading (/1.5)</span><span class="th-short">Read</span></th>
+            <th><span class="th-full">Wordform (/1.5)</span><span class="th-short">WF</span></th>
+            <th><span class="th-full">Dictionary (/0.5)</span><span class="th-short">Dict</span></th>
+            <th><span class="th-full">Rewrite (/1.0)</span><span class="th-short">RW</span></th>
+            <th>Tổng</th>
+            <th>Xếp loại</th>
+            <th class="col-edit">Thao tác</th>
           </tr>
         </thead>
         <tbody id="dataTableBody">
@@ -488,7 +541,9 @@ th { font-size: 11px; }
   <div class="edit-modal-box" style="max-width:500px;">
     <h3>👥 Quản lý tài khoản</h3>
 
-    <div id="accountList" style="margin-bottom:20px;max-height:260px;overflow-y:auto;"></div>
+    <input type="text" id="accSearch" placeholder="🔍 Tìm tên học sinh hoặc tên tài khoản..." oninput="renderAccountList()"
+      style="width:100%;box-sizing:border-box;padding:9px 12px;background:#1a1a1a;border:1px solid #333;border-radius:10px;color:white;font-size:13px;margin-bottom:10px;">
+    <div id="accountList" style="margin-bottom:20px;max-height:300px;overflow-y:auto;"></div>
 
     <div style="border-top:1px solid #333;padding-top:16px;">
       <div style="color:#aaa;font-size:13px;margin-bottom:10px;">➕ Thêm tài khoản mới</div>
@@ -1010,10 +1065,12 @@ function updateDashboard() {
             color: '#999',
             maxRotation: 0,
             minRotation: 0,
+            autoSkip: false,
             callback: function(val, i) {
-              // Rút gọn label trên mobile
-              const labels = ['Pron', 'Uses of Eng', 'Cloze', 'Reading', 'Wordform', 'Dict', 'Rewrite'];
-              return window.innerWidth < 600 ? labels[i] : this.getLabelForValue(val);
+              const short = ['Pron\n/1.0', 'UoE\n/3.0', 'Cloze\n/1.5', 'Read\n/1.5', 'WForm\n/1.5', 'Dict\n/0.5', 'Rewrite\n/1.0'];
+              const full  = ['Pronunciation\n(/1.0)', 'Uses of English\n(/3.0)', 'Cloze test\n(/1.5)', 'Reading\n(/1.5)', 'Wordform\n(/1.5)', 'Dictionary\n(/0.5)', 'Rewrite\n(/1.0)'];
+              const lbl = window.innerWidth < 700 ? short[i] : full[i];
+              return lbl ? lbl.split('\n') : '';
             }
           },
           grid: { color: '#222' }
@@ -1042,8 +1099,12 @@ function updateDashboard() {
       ${s.sections.map(v => `<td>${v.toFixed(1)}</td>`).join('')}
       <td><strong>${s.total.toFixed(2)}</strong></td>
       <td>${badge}</td>
-      <td class="col-edit"><button class="btn-pencil" onclick="openEditScoreModal('${s.id}')" title="Sửa điểm">✏️</button></td>
-      <td class="col-edit"><button class="btn-pencil" onclick="deleteStudent('${s.id}', '${s.name}')" title="Xóa học sinh" style="color:#ff4d4f;">🗑️</button></td>
+      <td class="col-edit">
+        <button onclick="openEditScoreModal('${s.id}')"
+          style="background:#ff9800;border:none;color:#000;font-weight:700;cursor:pointer;font-size:12px;padding:6px 14px;border-radius:10px;white-space:nowrap;">
+          Chỉnh sửa
+        </button>
+      </td>
     </tr>`;
     tbody.innerHTML += rowHTML;
   });
@@ -2227,29 +2288,62 @@ function closeManageAccounts() {
   document.getElementById('accError').innerText = '';
 }
 
+function openEditAccountModal(uname) {
+  const acc = ACCOUNTS[uname];
+  const isMe = uname === currentUser.username;
+  const studentName = acc.linkedStudentId ? (STUDENT_DATA[acc.linkedStudentId]?.name || acc.linkedStudentId) : null;
+  const roleLbl = acc.role==='admin' ? 'Admin' : acc.role==='student' ? 'Học sinh' : 'Guest';
+
+  const msg = `Tài khoản: ${uname} (${roleLbl})${studentName ? '\nHọc sinh: ' + studentName : ''}`;
+
+  const choice = confirm(`${msg}\n\nChọn OK để đổi mật khẩu, Cancel để xóa tài khoản.${isMe ? '\n(Bạn không thể xóa chính mình)' : ''}`);
+  if (choice) {
+    // Đổi mật khẩu
+    openChangePassModal(uname);
+  } else {
+    // Xóa tài khoản
+    if (isMe) { alert('Không thể xóa tài khoản đang đăng nhập!'); return; }
+    if (currentUser.role !== 'admin') { alert('Chỉ Admin mới có thể xóa tài khoản!'); return; }
+    deleteAccount(uname);
+  }
+}
+
 function renderAccountList() {
   const list = document.getElementById('accountList');
   list.innerHTML = '';
   const isAdmin = currentUser.role === 'admin';
+  const q = (document.getElementById('accSearch')?.value || '').toLowerCase().trim();
+
   for (let uname in ACCOUNTS) {
     const acc = ACCOUNTS[uname];
+    const studentName = acc.linkedStudentId ? (STUDENT_DATA[acc.linkedStudentId]?.name || '') : '';
+    // Filter theo search
+    if (q && !uname.toLowerCase().includes(q) && !studentName.toLowerCase().includes(q)) continue;
+
     const isMe = uname === currentUser.username;
-    // Nút đổi mật khẩu: chính mình luôn thấy; admin thấy của người khác
-    const canChangePass = isMe || isAdmin;
+    const roleLbl = acc.role==='admin' ? 'Admin' : acc.role==='student' ? 'Học sinh' : 'Guest';
+    const roleCls = acc.role==='admin' ? 'badge-admin' : acc.role==='student' ? 'badge-student' : 'badge-guest';
+    const canEdit = isMe || isAdmin;
+
     list.innerHTML += `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:10px;margin-bottom:8px;">
-        <div>
-          <strong>${uname}</strong>
-          <span class="login-badge ${acc.role==='admin'?'badge-admin':acc.role==='student'?'badge-student':'badge-guest'}" style="margin-left:8px;">${acc.role==='admin'?'Admin':acc.role==='student'?'Học sinh':'Guest'}</span>
-          ${acc.linkedStudentId ? `<span style="color:#666;font-size:12px;margin-left:6px;">(${STUDENT_DATA[acc.linkedStudentId]?.name || acc.linkedStudentId})</span>` : ''}
-          ${isMe ? '<span style="color:#666;font-size:12px;margin-left:6px;">(bạn)</span>' : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111;border-radius:12px;margin-bottom:8px;gap:10px;">
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong style="font-size:14px;">${uname}</strong>
+            <span class="login-badge ${roleCls}">${roleLbl}</span>
+            ${isMe ? '<span style="color:#666;font-size:11px;">(bạn)</span>' : ''}
+          </div>
+          ${studentName ? `<div style="color:#888;font-size:12px;margin-top:3px;">👤 ${studentName}</div>` : ''}
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          ${canChangePass ? `<button onclick="openChangePassModal('${uname}')" style="background:none;border:1px solid #444;color:#aaa;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:8px;" title="Đổi mật khẩu">🔑 Đổi pass</button>` : ''}
-          ${(!isMe && isAdmin) ? `<button onclick="deleteAccount('${uname}')" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;" title="Xóa">🗑️</button>` : ''}
+        <div style="flex-shrink:0;">
+          ${canEdit ? `<button onclick="openEditAccountModal('${uname}')"
+            style="background:#ff9800;border:none;color:#000;font-weight:700;cursor:pointer;font-size:13px;padding:7px 16px;border-radius:10px;white-space:nowrap;">
+            Chỉnh sửa
+          </button>` : ''}
         </div>
       </div>`;
   }
+  if (!list.innerHTML) list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Không tìm thấy tài khoản</div>';
 }
 
 function addAccount() {
